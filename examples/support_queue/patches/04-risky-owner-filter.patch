@@ -1,0 +1,38 @@
+diff --git a/examples/support_queue/support_queue/cli.py b/examples/support_queue/support_queue/cli.py
+index 0000000..0000000 100644
+--- a/examples/support_queue/support_queue/cli.py
++++ b/examples/support_queue/support_queue/cli.py
+@@ -28,6 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
+         choices=["low", "medium", "high", "urgent"],
+         help="Only show tickets at this priority.",
+     )
++    list_parser.add_argument("--owner", help="Only show tickets assigned to this owner.")
+ 
+     subparsers.add_parser("summary", help="Show backlog counts.")
+     return parser
+@@ -46,12 +47,15 @@ def filter_tickets(
+     *,
+     status: str | None = None,
+     priority: str | None = None,
++    owner: str | None = None,
+ ) -> list[Ticket]:
+     result = list(tickets)
+     if status is not None:
+         result = [ticket for ticket in result if ticket.status == status]
+     if priority is not None:
+         result = [ticket for ticket in result if ticket.priority == priority]
++    if owner is not None:
++        result = [ticket for ticket in result if owner in ticket.owner]
+     return result
+ 
+ 
+@@ -61,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
+     tickets = load_tickets(Path(args.data))
+ 
+     if args.command == "list":
+-        filtered = filter_tickets(tickets, status=args.status, priority=args.priority)
++        filtered = filter_tickets(tickets, status=args.status, priority=args.priority, owner=args.owner)
+         for ticket in filtered:
+             print(format_ticket(ticket))
+         return 0
+

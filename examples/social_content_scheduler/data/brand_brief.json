@@ -1,0 +1,21 @@
+{
+  "brand": "Northstar Notes",
+  "product": "a focused writing app for product teams",
+  "audience": "busy product managers and design leads",
+  "tone": "clear, practical, slightly witty",
+  "campaign": "launch week",
+  "goals": [
+    "drive trial signups",
+    "explain the value of structured product notes",
+    "encourage teams to replace scattered meeting docs"
+  ],
+  "features": [
+    "decision logs",
+    "AI-assisted summaries",
+    "weekly product digest",
+    "shareable customer insight boards"
+  ],
+  "call_to_action": "Start a free workspace",
+  "hashtags": ["#ProductManagement", "#ProductOps", "#BuildBetter"]
+}
+

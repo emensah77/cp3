@@ -1,0 +1,11 @@
+diff --git a/examples/support_queue/support_queue/models.py b/examples/support_queue/support_queue/models.py
+index 0000000..0000000 100644
+--- a/examples/support_queue/support_queue/models.py
++++ b/examples/support_queue/support_queue/models.py
+@@ -36,5 +36,5 @@ class Ticket:
+ 
+     def sla_due_at(self) -> datetime:
+         hours = SLA_HOURS_BY_PRIORITY[self.priority]
+-        return self.created_at + timedelta(hours=hours)
++        return self.created_at + timedelta(days=hours)
+
