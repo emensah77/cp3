@@ -62,6 +62,7 @@ def post_due(
                 status=posted.status,
                 idempotency_key=key,
                 provider_post_id=provider_result.provider_post_id,
+                canonical_url=provider_result.canonical_url,
             )
         )
     return updated, receipts

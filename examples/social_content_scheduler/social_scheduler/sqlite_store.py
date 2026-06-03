@@ -7,10 +7,11 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Iterable
 
+from .credentials import OAuthCredential
 from .models import APPROVED, FAILED, POSTED, PostReceipt, ScheduledPost
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class SQLiteScheduleStore:
@@ -70,7 +71,33 @@ class SQLiteScheduleStore:
                     status TEXT NOT NULL,
                     idempotency_key TEXT NOT NULL UNIQUE,
                     provider_post_id TEXT NOT NULL,
-                    error TEXT
+                    error TEXT,
+                    canonical_url TEXT
+                )
+                """
+            )
+            self.connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS oauth_credentials (
+                    account_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    access_token TEXT NOT NULL,
+                    refresh_token TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    scopes TEXT NOT NULL,
+                    PRIMARY KEY(account_id, platform)
+                )
+                """
+            )
+            self.connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS audit_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event TEXT NOT NULL,
+                    actor_id TEXT NOT NULL,
+                    target TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    metadata TEXT
                 )
                 """
             )
@@ -124,6 +151,14 @@ class SQLiteScheduleStore:
             )
             if cursor.rowcount != 1:
                 raise ValueError(f"No approvable scheduled post found for draft id: {draft_id}")
+            self.record_audit_event(
+                event="post.approved",
+                actor_id=reviewer,
+                target=draft_id,
+                occurred_at=approved_at,
+                metadata='{"source":"sqlite"}',
+                in_transaction=True,
+            )
 
     def claim_due(
         self,
@@ -167,9 +202,9 @@ class SQLiteScheduleStore:
                     """
                     INSERT INTO post_receipts (
                         draft_id, platform, posted_at, destination, status,
-                        idempotency_key, provider_post_id, error
+                        idempotency_key, provider_post_id, error, canonical_url
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         receipt.draft_id,
@@ -180,6 +215,7 @@ class SQLiteScheduleStore:
                         receipt.idempotency_key,
                         receipt.provider_post_id,
                         receipt.error,
+                        receipt.canonical_url,
                     ),
                 )
                 inserted = True
@@ -216,6 +252,79 @@ class SQLiteScheduleStore:
 
     def receipt_count(self) -> int:
         row = self.connection.execute("SELECT COUNT(*) AS count FROM post_receipts").fetchone()
+        return int(row["count"])
+
+    def save_credential(self, credential: OAuthCredential) -> None:
+        with self.transaction():
+            self.connection.execute(
+                """
+                INSERT INTO oauth_credentials (
+                    account_id, platform, access_token, refresh_token, expires_at, scopes
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(account_id, platform) DO UPDATE SET
+                    access_token = excluded.access_token,
+                    refresh_token = excluded.refresh_token,
+                    expires_at = excluded.expires_at,
+                    scopes = excluded.scopes
+                """,
+                (
+                    credential.account_id,
+                    credential.platform,
+                    credential.access_token,
+                    credential.refresh_token,
+                    credential.expires_at.isoformat(),
+                    ",".join(credential.scopes),
+                ),
+            )
+
+    def load_credential(self, *, account_id: str, platform: str) -> OAuthCredential | None:
+        row = self.connection.execute(
+            """
+            SELECT *
+            FROM oauth_credentials
+            WHERE account_id = ? AND platform = ?
+            """,
+            (account_id, platform),
+        ).fetchone()
+        if row is None:
+            return None
+        return OAuthCredential(
+            account_id=row["account_id"],
+            platform=row["platform"],
+            access_token=row["access_token"],
+            refresh_token=row["refresh_token"],
+            expires_at=datetime.fromisoformat(row["expires_at"]),
+            scopes=tuple(scope for scope in row["scopes"].split(",") if scope),
+        )
+
+    def record_audit_event(
+        self,
+        *,
+        event: str,
+        actor_id: str,
+        target: str,
+        occurred_at: datetime,
+        metadata: str | None = None,
+        in_transaction: bool = False,
+    ) -> None:
+        def insert() -> None:
+            self.connection.execute(
+                """
+                INSERT INTO audit_events(event, actor_id, target, occurred_at, metadata)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (event, actor_id, target, occurred_at.isoformat(), metadata),
+            )
+
+        if in_transaction:
+            insert()
+        else:
+            with self.transaction():
+                insert()
+
+    def audit_count(self) -> int:
+        row = self.connection.execute("SELECT COUNT(*) AS count FROM audit_events").fetchone()
         return int(row["count"])
 
 

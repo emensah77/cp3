@@ -56,6 +56,7 @@ PYTHONPATH=examples/social_content_scheduler python3 -m social_scheduler.cli db-
 | [06 Build A Social Scheduler](cookbooks/06-build-a-social-scheduler.md) | End-to-end product work | Codex extends an approval-gated, idempotent content scheduler. |
 | [07 Expose Tools With MCP](cookbooks/07-expose-tools-with-mcp.md) | MCP tool design and testing | Codex adds or reviews tools on a local MCP-style server. |
 | [08 Productionize The Scheduler Core](cookbooks/08-productionize-the-scheduler-core.md) | Production engineering patterns | Codex works with SQLite migrations, leases, and idempotent workers. |
+| [09 Add Auth And Observability](cookbooks/09-add-auth-and-observability.md) | Production platform concerns | Codex extends RBAC, OAuth-style credentials, audit logs, metrics, and provider contracts. |
 
 ## Repository Layout
 
@@ -80,6 +81,7 @@ cookbooks/
   06-build-a-social-scheduler.md
   07-expose-tools-with-mcp.md
   08-productionize-the-scheduler-core.md
+  09-add-auth-and-observability.md
 ```
 
 ## What Makes These Robust
@@ -90,3 +92,5 @@ cookbooks/
   required.
 - Cookbooks tell Codex what it may edit and what it should leave alone.
 - Review prompts ask for file and line references instead of broad impressions.
+- The flagship scheduler includes production-shaped interfaces for permissions,
+  credentials, provider adapters, audit events, metrics, leases, and idempotency.

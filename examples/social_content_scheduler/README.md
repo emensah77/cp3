@@ -8,6 +8,8 @@ Codex on a more product-shaped workflow:
 - Approve posts before publishing.
 - Post due items to a local JSONL outbox.
 - Expose the workflow through a tiny MCP-style JSON-RPC server.
+- Demonstrate RBAC, OAuth-style credential metadata, audit events, metrics, and
+  provider adapter contracts.
 
 The app uses only the Python standard library. Posting is mocked on purpose: this
 keeps tests deterministic and prevents accidental real-world publishing.
@@ -65,6 +67,17 @@ PYTHONPATH=examples/social_content_scheduler python3 -m social_scheduler.cli db-
 The SQLite worker claims only approved, due posts whose lease is absent or
 expired. Completion inserts a unique receipt by idempotency key and marks the
 scheduled item posted in the same transaction.
+
+## Production Concerns Included
+
+- RBAC helpers define `admin`, `marketer`, `reviewer`, and `worker` permissions.
+- OAuth-style credentials can be stored, loaded, and refreshed without contacting
+  real providers.
+- Provider adapters use a protocol so real platform clients can replace the mock
+  provider.
+- Audit events are recorded for approval actions in SQLite.
+- Worker metrics and JSON event logs make posting outcomes observable.
+- Receipts include provider post IDs and canonical URLs.
 
 ## Inspect The MCP Server
 

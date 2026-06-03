@@ -5,9 +5,11 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
+from social_scheduler.credentials import OAuthCredential
 from social_scheduler.generator import generate_posts
 from social_scheduler.models import APPROVED, FAILED, POSTED
 from social_scheduler.providers import MockSocialProvider
+from social_scheduler.observability import JsonEventLogger, Metrics
 from social_scheduler.scheduler import schedule_posts
 from social_scheduler.sqlite_store import SQLiteScheduleStore
 from social_scheduler.storage import load_brief
@@ -116,6 +118,45 @@ class SQLiteStoreTests(unittest.TestCase):
             finally:
                 store.close()
 
+    def test_worker_refreshes_expired_credentials_and_emits_observability(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            store = SQLiteScheduleStore(Path(tmp) / "scheduler.db")
+            try:
+                store.migrate()
+                store.insert_scheduled(build_schedule(1))
+                store.approve(draft_id="draft-001", reviewer="casey", approved_at=datetime(2026, 5, 31, 12))
+                store.save_credential(
+                    OAuthCredential(
+                        account_id="acct-1",
+                        platform="x",
+                        access_token="expired",
+                        refresh_token="refresh",
+                        expires_at=datetime(2026, 5, 31, 9),
+                        scopes=("post.write",),
+                    )
+                )
+                metrics = Metrics()
+                event_log = Path(tmp) / "events.jsonl"
+
+                posted = post_due_from_store(
+                    store,
+                    now=datetime(2026, 6, 1, 9),
+                    worker_id="worker-a",
+                    outbox_path=Path(tmp) / "outbox.jsonl",
+                    account_id="acct-1",
+                    metrics=metrics,
+                    event_logger=JsonEventLogger(event_log),
+                )
+
+                refreshed = store.load_credential(account_id="acct-1", platform="x")
+                self.assertEqual(posted, 1)
+                self.assertEqual(metrics.snapshot(), {"posts.posted": 1})
+                self.assertTrue((refreshed.access_token if refreshed else "").startswith("refreshed-x-acct-1"))
+                self.assertIn("post.posted", event_log.read_text(encoding="utf-8"))
+                self.assertEqual(store.audit_count(), 1)
+            finally:
+                store.close()
+
     def test_lease_expiry_allows_reclaim(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             db = Path(tmp) / "scheduler.db"
@@ -148,4 +189,3 @@ class SQLiteStoreTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

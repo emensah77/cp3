@@ -119,6 +119,7 @@ class PostReceipt:
     idempotency_key: str
     provider_post_id: str
     error: str | None = None
+    canonical_url: str | None = None
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> "PostReceipt":
@@ -131,6 +132,7 @@ class PostReceipt:
             idempotency_key=raw["idempotency_key"],
             provider_post_id=raw["provider_post_id"],
             error=raw.get("error"),
+            canonical_url=raw.get("canonical_url"),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -143,4 +145,5 @@ class PostReceipt:
             "idempotency_key": self.idempotency_key,
             "provider_post_id": self.provider_post_id,
             "error": self.error,
+            "canonical_url": self.canonical_url,
         }
