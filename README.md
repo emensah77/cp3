@@ -2,11 +2,13 @@
 
 Hands-on cookbooks that demonstrate how to use Codex on real engineering work.
 
-This repository includes two runnable Python projects:
+This repository includes three runnable Python projects:
 
 - `support_queue`: a compact ticket queue used for everyday coding workflows.
 - `social_content_scheduler`: a local-first content generator, scheduler, mock
   poster, and MCP tool server.
+- `google_ads_manager`: a highly rigorous Google Ads operations example with
+  mocked campaign mutation and offline conversion workflows.
 
 Each cookbook gives Codex a concrete task, with acceptance criteria, commands to
 run, expected files to touch, and review questions.
@@ -44,6 +46,17 @@ PYTHONPATH=examples/social_content_scheduler python3 -m social_scheduler.cli db-
 PYTHONPATH=examples/social_content_scheduler python3 -m social_scheduler.cli db-post-due --db /tmp/social-scheduler.db --worker-id worker-a --outbox /tmp/social-outbox.jsonl --now 2026-06-02T12:00:00
 ```
 
+Run the Google Ads operations example:
+
+```sh
+PYTHONPATH=examples/google_ads_manager python3 -m unittest discover -s examples/google_ads_manager/tests
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli validate-plan --plan examples/google_ads_manager/data/campaign_plan.json --max-daily-budget-micros 50000000
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli db-init --db /tmp/google-ads-ops.db
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli import-plan --db /tmp/google-ads-ops.db --plan examples/google_ads_manager/data/campaign_plan.json --actor-id media-lead
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli approve --db /tmp/google-ads-ops.db --mutation-id mut-001 --actor-id director
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli sync-approved --db /tmp/google-ads-ops.db --worker-id worker-a --customer-id 1234567890 --login-customer-id 9998887777
+```
+
 ## Cookbooks
 
 | Cookbook | Codex capability | Concrete outcome |
@@ -57,6 +70,7 @@ PYTHONPATH=examples/social_content_scheduler python3 -m social_scheduler.cli db-
 | [07 Expose Tools With MCP](cookbooks/07-expose-tools-with-mcp.md) | MCP tool design and testing | Codex adds or reviews tools on a local MCP-style server. |
 | [08 Productionize The Scheduler Core](cookbooks/08-productionize-the-scheduler-core.md) | Production engineering patterns | Codex works with SQLite migrations, leases, and idempotent workers. |
 | [09 Add Auth And Observability](cookbooks/09-add-auth-and-observability.md) | Production platform concerns | Codex extends RBAC, OAuth-style credentials, audit logs, metrics, and provider contracts. |
+| [10 Google Ads Operations](cookbooks/10-google-ads-operations.md) | Ads automation engineering | Codex extends a safe, rigorous Google Ads mutation and conversion-upload system. |
 
 ## Repository Layout
 
@@ -72,6 +86,12 @@ examples/social_content_scheduler/
   social_scheduler/               # Generator, scheduler, poster, MCP server
   tests/                          # Unit tests using the standard library
 
+examples/google_ads_manager/
+  data/campaign_plan.json          # Campaign mutation input
+  data/offline_conversions.json    # Offline conversion input
+  google_ads_ops/                  # Policy, provider, SQLite, CLI, MCP
+  tests/                           # Unit tests using the standard library
+
 cookbooks/
   01-onboard-a-repo.md
   02-add-a-tested-feature.md
@@ -82,6 +102,7 @@ cookbooks/
   07-expose-tools-with-mcp.md
   08-productionize-the-scheduler-core.md
   09-add-auth-and-observability.md
+  10-google-ads-operations.md
 ```
 
 ## What Makes These Robust
@@ -94,3 +115,5 @@ cookbooks/
 - Review prompts ask for file and line references instead of broad impressions.
 - The flagship scheduler includes production-shaped interfaces for permissions,
   credentials, provider adapters, audit events, metrics, leases, and idempotency.
+- The Google Ads example mirrors high-risk ads automation concerns while keeping
+  all API calls mocked and safe by default.

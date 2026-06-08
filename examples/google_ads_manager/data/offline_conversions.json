@@ -1,0 +1,23 @@
+[
+  {
+    "conversion_id": "conv-001",
+    "gclid": "TEST-GCLID-001",
+    "conversion_action": "customers/1234567890/conversionActions/111",
+    "conversion_date_time": "2026-06-08T10:15:00-07:00",
+    "conversion_value": 149.0,
+    "currency_code": "USD",
+    "order_id": "order-1001",
+    "ad_user_data_consent": "GRANTED"
+  },
+  {
+    "conversion_id": "conv-002",
+    "gclid": "",
+    "conversion_action": "customers/1234567890/conversionActions/111",
+    "conversion_date_time": "2026-06-08T10:45:00-07:00",
+    "conversion_value": 99.0,
+    "currency_code": "USD",
+    "order_id": "order-1002",
+    "ad_user_data_consent": "GRANTED"
+  }
+]
+

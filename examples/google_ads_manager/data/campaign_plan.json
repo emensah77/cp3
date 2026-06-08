@@ -1,0 +1,43 @@
+{
+  "account_id": "acct-northstar",
+  "customer_id": "1234567890",
+  "campaigns": [
+    {
+      "id": "mut-001",
+      "name": "Northstar Launch Search",
+      "channel": "SEARCH",
+      "status": "PAUSED",
+      "daily_budget_micros": 25000000,
+      "final_url": "https://northstar.example/signup",
+      "headlines": [
+        "Launch Better Product Notes",
+        "Turn Meetings Into Decisions",
+        "Try Northstar Notes"
+      ],
+      "descriptions": [
+        "Give product teams structured notes, decisions, and weekly digests.",
+        "Start a free workspace for your launch team today."
+      ],
+      "keywords": ["product notes", "product management software", "decision log"]
+    },
+    {
+      "id": "mut-002",
+      "name": "Northstar Product Ops",
+      "channel": "SEARCH",
+      "status": "PAUSED",
+      "daily_budget_micros": 18000000,
+      "final_url": "https://northstar.example/product-ops",
+      "headlines": [
+        "Product Ops Without Sprawl",
+        "Weekly Product Digests",
+        "Customer Insights In One Place"
+      ],
+      "descriptions": [
+        "Replace scattered meeting docs with structured product operating notes.",
+        "Keep teams aligned from insight to decision."
+      ],
+      "keywords": ["product ops", "customer insight board", "weekly product digest"]
+    }
+  ]
+}
+
