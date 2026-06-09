@@ -9,6 +9,8 @@ This repository includes three runnable Python projects:
   poster, and MCP tool server.
 - `google_ads_manager`: a highly rigorous Google Ads operations example with
   mocked campaign mutation and offline conversion workflows.
+- `notion_workspace_sync`: a Notion data source/page sync example with schema
+  validation, capabilities, idempotency, leases, CLI, and MCP tools.
 
 Each cookbook gives Codex a concrete task, with acceptance criteria, commands to
 run, expected files to touch, and review questions.
@@ -58,6 +60,15 @@ PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli approve --d
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli sync-approved --db /tmp/google-ads-ops.db --worker-id worker-a --customer-id 1234567890 --login-customer-id 9998887777
 ```
 
+Run the Notion workspace sync example:
+
+```sh
+PYTHONPATH=examples/notion_workspace_sync python3 -m unittest discover -s examples/notion_workspace_sync/tests
+PYTHONPATH=examples/notion_workspace_sync python3 -m notion_sync.cli validate --records examples/notion_workspace_sync/data/projects.json --schema examples/notion_workspace_sync/data/notion_schema.json
+PYTHONPATH=examples/notion_workspace_sync python3 -m notion_sync.cli preview --records examples/notion_workspace_sync/data/projects.json --schema examples/notion_workspace_sync/data/notion_schema.json
+PYTHONPATH=examples/notion_workspace_sync python3 -m notion_sync.mcp_client_demo
+```
+
 ## Cookbooks
 
 | Cookbook | Codex capability | Concrete outcome |
@@ -72,6 +83,7 @@ PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli sync-approv
 | [08 Productionize The Scheduler Core](cookbooks/08-productionize-the-scheduler-core.md) | Production engineering patterns | Codex works with SQLite migrations, leases, and idempotent workers. |
 | [09 Add Auth And Observability](cookbooks/09-add-auth-and-observability.md) | Production platform concerns | Codex extends RBAC, OAuth-style credentials, audit logs, metrics, and provider contracts. |
 | [10 Google Ads Operations](cookbooks/10-google-ads-operations.md) | Ads automation engineering | Codex extends safe campaign, ad group, RSA, keyword, mutation, and conversion workflows. |
+| [11 Notion Workspace Sync](cookbooks/11-notion-workspace-sync.md) | Notion API engineering | Codex extends safe data source schema, page upsert, block, lease, and MCP workflows. |
 
 ## Repository Layout
 
@@ -93,6 +105,12 @@ examples/google_ads_manager/
   google_ads_ops/                  # Policy, provider, SQLite, CLI, MCP
   tests/                           # Unit tests using the standard library
 
+examples/notion_workspace_sync/
+  data/notion_schema.json           # Data source schema fixture
+  data/projects.json                # Project records to sync
+  notion_sync/                      # Schema, payloads, provider, SQLite, CLI, MCP
+  tests/                            # Unit tests using the standard library
+
 cookbooks/
   01-onboard-a-repo.md
   02-add-a-tested-feature.md
@@ -104,6 +122,7 @@ cookbooks/
   08-productionize-the-scheduler-core.md
   09-add-auth-and-observability.md
   10-google-ads-operations.md
+  11-notion-workspace-sync.md
 ```
 
 ## What Makes These Robust
@@ -118,3 +137,5 @@ cookbooks/
   credentials, provider adapters, audit events, metrics, leases, and idempotency.
 - The Google Ads example mirrors high-risk ads automation concerns while keeping
   all API calls mocked and safe by default.
+- The Notion example mirrors real data source/page workflows while keeping
+  workspace access mocked and safe by default.

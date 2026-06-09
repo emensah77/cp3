@@ -1,0 +1,29 @@
+[
+  {
+    "external_id": "proj-001",
+    "name": "Launch Codex Cookbooks",
+    "status": "Active",
+    "owner": "Ebenezer",
+    "tags": ["AI", "Docs", "Launch"],
+    "due": "2026-06-15",
+    "url": "https://github.com/emensah77/cp3",
+    "published": false,
+    "related_external_ids": [],
+    "summary": "Publish rigorous Codex cookbook examples for engineering workflows.",
+    "next_steps": ["Review examples", "Add screenshots", "Share with early users"]
+  },
+  {
+    "external_id": "proj-002",
+    "name": "Google Ads Ops Cookbook",
+    "status": "Discovery",
+    "owner": "Ebenezer",
+    "tags": ["Ads", "Ops"],
+    "due": "2026-06-21",
+    "url": "https://github.com/emensah77/cp3/tree/main/examples/google_ads_manager",
+    "published": false,
+    "related_external_ids": ["proj-001"],
+    "summary": "Model safe Google Ads campaign and conversion automation.",
+    "next_steps": ["Add sitelinks", "Expand MCP tools"]
+  }
+]
+

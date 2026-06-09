@@ -1,0 +1,16 @@
+{
+  "data_source_id": "ds-projects",
+  "title_property": "Name",
+  "properties": {
+    "Name": {"type": "title"},
+    "External ID": {"type": "rich_text"},
+    "Status": {"type": "select", "options": ["Discovery", "Active", "Blocked", "Done"]},
+    "Owner": {"type": "rich_text"},
+    "Tags": {"type": "multi_select", "options": ["AI", "Ads", "Ops", "Docs", "Launch"]},
+    "Due": {"type": "date"},
+    "URL": {"type": "url"},
+    "Published": {"type": "checkbox"},
+    "Related Projects": {"type": "relation", "data_source_id": "ds-projects"}
+  }
+}
+
