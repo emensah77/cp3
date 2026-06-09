@@ -7,6 +7,8 @@ Google Ads account or spending money.
 The app models:
 
 - Campaign plan validation before mutation.
+- Concrete campaign-budget, campaign, ad group, responsive search ad, keyword,
+  and geo-target operation generation.
 - Budget and policy guardrails.
 - Approval-gated campaign changes.
 - Validate-only and partial-failure style API behavior.
@@ -29,6 +31,16 @@ PYTHONPATH=examples/google_ads_manager python3 -m unittest discover -s examples/
 ```sh
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli validate-plan --plan examples/google_ads_manager/data/campaign_plan.json --max-daily-budget-micros 50000000
 ```
+
+## Build Google Ads Operations
+
+```sh
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli build-operations --plan examples/google_ads_manager/data/campaign_plan.json
+```
+
+This compiles the plan into the useful resource graph for a Search campaign:
+campaign budgets, campaigns, ad groups, responsive search ads, keyword criteria,
+and geo targeting.
 
 ## Import, Approve, And Sync Mutations
 
@@ -55,9 +67,11 @@ PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.mcp_client_demo
 
 This example mirrors concepts from official Google Ads API documentation:
 
+- Campaigns contain budgets, ad groups, ads, keywords/criteria, and targeting.
+- Responsive search ad examples create a budget, campaign, ad group, ad,
+  keywords, and geo targeting.
 - Mutate requests can support validate-only and partial-failure style workflows.
 - API calls require OAuth credentials and a developer token; manager-account
   flows can include a login customer ID.
 - Offline click conversion uploads include consent/debug behavior and can return
   per-conversion errors.
-

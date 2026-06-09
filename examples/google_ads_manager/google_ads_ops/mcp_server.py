@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .operation_builder import compile_plan_operations, summarize_operations
 from .policy import validate_plan
 from .storage import load_plan
 
@@ -23,7 +24,16 @@ TOOLS = [
             },
             "required": ["plan_path", "max_daily_budget_micros"],
         },
-    }
+    },
+    {
+        "name": "build_google_ads_operations",
+        "description": "Compile a campaign plan into concrete Google Ads resource operations.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"plan_path": {"type": "string"}},
+            "required": ["plan_path"],
+        },
+    },
 ]
 
 
@@ -59,6 +69,11 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         )
         text = "\n".join(f"{item.mutation_id} {item.code} {item.message}" for item in violations)
         return {"content": [{"type": "text", "text": text or "violations=0"}]}
+    if name == "build_google_ads_operations":
+        plan = load_plan(Path(arguments["plan_path"]))
+        summary = summarize_operations(compile_plan_operations(plan))
+        text = "\n".join(f"{key}={summary[key]}" for key in sorted(summary))
+        return {"content": [{"type": "text", "text": text}]}
     raise ValueError(f"Unsupported tool: {name}")
 
 
@@ -73,4 +88,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

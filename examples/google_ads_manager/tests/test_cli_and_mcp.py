@@ -20,6 +20,7 @@ class CliAndMcpTests(unittest.TestCase):
             db = Path(tmp) / "ads.db"
 
             self.assertEqual(main(["validate-plan", "--plan", str(PLAN), "--max-daily-budget-micros", "50000000"]), 0)
+            self.assertEqual(main(["build-operations", "--plan", str(PLAN)]), 0)
             self.assertEqual(main(["db-init", "--db", str(db)]), 0)
             self.assertEqual(main(["import-plan", "--db", str(db), "--plan", str(PLAN), "--actor-id", "media-lead"]), 0)
             self.assertEqual(main(["approve", "--db", str(db), "--mutation-id", "mut-001", "--actor-id", "director"]), 0)
@@ -74,8 +75,25 @@ class CliAndMcpTests(unittest.TestCase):
         response = handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
 
         self.assertEqual(response["result"]["tools"][0]["name"], "validate_google_ads_plan")
+        self.assertEqual(response["result"]["tools"][1]["name"], "build_google_ads_operations")
+
+    def test_mcp_build_operations_tool(self) -> None:
+        response = handle(
+            {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "method": "tools/call",
+                "params": {
+                    "name": "build_google_ads_operations",
+                    "arguments": {"plan_path": str(PLAN)},
+                },
+            }
+        )
+
+        text = response["result"]["content"][0]["text"]
+        self.assertIn("CampaignBudget=2", text)
+        self.assertIn("AdGroupCriterion=6", text)
 
 
 if __name__ == "__main__":
     unittest.main()
-

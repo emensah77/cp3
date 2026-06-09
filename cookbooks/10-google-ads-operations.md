@@ -13,6 +13,9 @@ The `examples/google_ads_manager` project includes:
 
 - Campaign plan validation with budget, URL, channel, duplicate-id, and policy
   checks.
+- An operation compiler that creates concrete Google Ads resource operations:
+  campaign budgets, campaigns, ad groups, responsive search ads, keyword
+  criteria, and geo targets.
 - Google Ads credential metadata with developer token, OAuth token fields,
   target customer ID, and optional login customer ID.
 - A mock provider that mirrors validate-only, partial-failure, request-id,
@@ -22,12 +25,12 @@ The `examples/google_ads_manager` project includes:
   per-conversion errors.
 - MCP-style tooling for campaign plan validation.
 - Tests for policy, credentials, provider behavior, CLI, MCP, leases,
-  idempotency, and conversion uploads.
+  idempotency, operation generation, and conversion uploads.
 
 ## Codex Prompt
 
 ```text
-Extend the Google Ads operations example with budget-change approval limits.
+Extend the Google Ads operations example with sitelink asset generation.
 
 Scope:
 - Only edit files under examples/google_ads_manager.
@@ -36,12 +39,15 @@ Scope:
 - Keep the implementation dependency-free.
 
 Feature:
-- Add a policy rule that blocks budget increases greater than 25% over the
-  currently stored budget for the same campaign.
-- Store the previous approved budget in SQLite.
-- Add a CLI command that previews budget deltas before approval.
-- Add an MCP tool named preview_budget_deltas.
-- Add tests for allowed increases, blocked increases, CLI output, and MCP output.
+- Add sitelink extension support to the campaign plan fixture.
+- Compile sitelinks into campaign asset operations that depend on campaign
+  creation.
+- Validate that each sitelink has link text, final URL, and two descriptions.
+- Add a CLI summary count for campaign assets.
+- Add an MCP tool named build_google_ads_operations_detail that returns operation
+  ids and dependencies.
+- Add tests for policy validation, operation generation, CLI output, and MCP
+  output.
 
 Verification:
 - Run `PYTHONPATH=examples/google_ads_manager python3 -m unittest discover -s examples/google_ads_manager/tests`.
@@ -49,11 +55,10 @@ Verification:
 
 ## Acceptance Criteria
 
-- Budget deltas are calculated in micros.
-- The policy compares against the last approved stored budget, not the incoming
-  plan alone.
-- A campaign with no prior approved budget can still be imported and reviewed.
-- Blocked budget increases do not change approval state.
+- Campaign budget, campaign, ad group, responsive search ad, keyword, geo, and
+  campaign asset operations are all generated.
+- Sitelink operations depend on campaign creation.
+- Invalid sitelinks block validation.
 - Existing mutation sync and conversion upload tests still pass.
 
 ## Commands To Start With
@@ -61,6 +66,7 @@ Verification:
 ```sh
 PYTHONPATH=examples/google_ads_manager python3 -m unittest discover -s examples/google_ads_manager/tests
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli validate-plan --plan examples/google_ads_manager/data/campaign_plan.json --max-daily-budget-micros 50000000
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli build-operations --plan examples/google_ads_manager/data/campaign_plan.json
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli db-init --db /tmp/google-ads-ops.db
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli import-plan --db /tmp/google-ads-ops.db --plan examples/google_ads_manager/data/campaign_plan.json --actor-id media-lead
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli approve --db /tmp/google-ads-ops.db --mutation-id mut-001 --actor-id director
@@ -73,13 +79,14 @@ PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli upload-conv
 - Did Codex preserve the no-real-spend safety boundary?
 - Are developer token and OAuth values treated as metadata, not printed raw?
 - Are partial-failure and validate-only semantics preserved?
-- Are budget approvals transactional and auditable?
+- Are generated resource dependencies explicit and tested?
 - Do tests prove idempotency for both campaign mutations and conversion uploads?
 
 ## References
 
 - [Google Ads API partial failures](https://developers.google.com/google-ads/api/docs/best-practices/partial-failures)
 - [Google Ads API mutate requests](https://developers.google.com/google-ads/api/rest/common/mutate)
+- [Google Ads campaigns overview](https://developers.google.com/google-ads/api/docs/campaigns/overview)
+- [Google Ads create ads guide](https://developers.google.com/google-ads/api/docs/ads/create-ads)
 - [Google Ads offline click conversions](https://developers.google.com/google-ads/api/docs/conversions/upload-clicks)
 - [Google Ads API authorization and headers](https://developers.google.com/google-ads/api/rest/auth)
-

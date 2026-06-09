@@ -51,6 +51,7 @@ Run the Google Ads operations example:
 ```sh
 PYTHONPATH=examples/google_ads_manager python3 -m unittest discover -s examples/google_ads_manager/tests
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli validate-plan --plan examples/google_ads_manager/data/campaign_plan.json --max-daily-budget-micros 50000000
+PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli build-operations --plan examples/google_ads_manager/data/campaign_plan.json
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli db-init --db /tmp/google-ads-ops.db
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli import-plan --db /tmp/google-ads-ops.db --plan examples/google_ads_manager/data/campaign_plan.json --actor-id media-lead
 PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli approve --db /tmp/google-ads-ops.db --mutation-id mut-001 --actor-id director
@@ -70,7 +71,7 @@ PYTHONPATH=examples/google_ads_manager python3 -m google_ads_ops.cli sync-approv
 | [07 Expose Tools With MCP](cookbooks/07-expose-tools-with-mcp.md) | MCP tool design and testing | Codex adds or reviews tools on a local MCP-style server. |
 | [08 Productionize The Scheduler Core](cookbooks/08-productionize-the-scheduler-core.md) | Production engineering patterns | Codex works with SQLite migrations, leases, and idempotent workers. |
 | [09 Add Auth And Observability](cookbooks/09-add-auth-and-observability.md) | Production platform concerns | Codex extends RBAC, OAuth-style credentials, audit logs, metrics, and provider contracts. |
-| [10 Google Ads Operations](cookbooks/10-google-ads-operations.md) | Ads automation engineering | Codex extends a safe, rigorous Google Ads mutation and conversion-upload system. |
+| [10 Google Ads Operations](cookbooks/10-google-ads-operations.md) | Ads automation engineering | Codex extends safe campaign, ad group, RSA, keyword, mutation, and conversion workflows. |
 
 ## Repository Layout
 

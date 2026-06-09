@@ -8,6 +8,7 @@ from datetime import datetime
 
 from .credentials import GoogleAdsCredential
 from .models import CampaignMutation, ConversionReceipt, MutationReceipt, OfflineConversion
+from .operation_builder import GoogleAdsOperation, compile_campaign_operations
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,17 @@ class MockGoogleAdsProvider:
         receipts: list[MutationReceipt] = []
         errors: list[ProviderError] = []
         for mutation in mutations:
+            operation_errors = validate_operation_graph(
+                compile_campaign_operations(credential.customer_id, mutation)
+            )
+            if operation_errors:
+                errors.extend(
+                    ProviderError(mutation.id, "INVALID_OPERATION_GRAPH", message)
+                    for message in operation_errors
+                )
+                if not partial_failure:
+                    return MutateResponse(request_id, [], errors)
+                continue
             if "fail" in mutation.name.lower():
                 errors.append(ProviderError(mutation.id, "MOCK_POLICY_ERROR", "Mock provider rejected campaign"))
                 if not partial_failure:
@@ -124,3 +136,31 @@ def _request_id(prefix: str, customer_id: str, ids: list[str]) -> str:
 def _stable_number(value: str) -> int:
     return int(hashlib.sha256(value.encode("utf-8")).hexdigest()[:8], 16)
 
+
+def validate_operation_graph(operations: list[GoogleAdsOperation]) -> list[str]:
+    errors: list[str] = []
+    seen: set[str] = set()
+    required = {
+        "CampaignBudget",
+        "Campaign",
+        "AdGroup",
+        "AdGroupAd",
+        "AdGroupCriterion",
+        "CampaignCriterion",
+    }
+    present = {operation.resource_type for operation in operations}
+    missing = sorted(required - present)
+    if missing:
+        errors.append("missing resource types: " + ",".join(missing))
+    for operation in operations:
+        for dependency in operation.depends_on:
+            if dependency not in seen:
+                errors.append(f"{operation.operation_id} depends on unsatisfied {dependency}")
+        seen.add(operation.operation_id)
+    rsa_count = sum(1 for operation in operations if operation.resource_type == "AdGroupAd")
+    if rsa_count < 1:
+        errors.append("at least one responsive search ad is required")
+    keyword_count = sum(1 for operation in operations if operation.resource_type == "AdGroupCriterion")
+    if keyword_count < 1:
+        errors.append("at least one keyword criterion is required")
+    return errors

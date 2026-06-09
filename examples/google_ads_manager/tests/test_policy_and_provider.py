@@ -75,6 +75,30 @@ class PolicyAndProviderTests(unittest.TestCase):
         self.assertEqual(response.receipts, [])
         self.assertEqual(response.errors, [])
 
+    def test_mutate_validates_concrete_operation_graph(self) -> None:
+        mutation = CampaignMutation(
+            id="mut-empty",
+            name="No Keywords",
+            channel="SEARCH",
+            status="PAUSED",
+            daily_budget_micros=10_000_000,
+            final_url="https://northstar.example",
+            headlines=["One", "Two", "Three"],
+            descriptions=["Description one", "Description two"],
+            keywords=[],
+        )
+
+        response = MockGoogleAdsProvider().mutate_campaigns(
+            [mutation],
+            credential=credential(),
+            validate_only=False,
+            partial_failure=True,
+            now=datetime(2026, 6, 8, 12),
+        )
+
+        self.assertEqual(response.receipts, [])
+        self.assertEqual(response.errors[0].code, "INVALID_OPERATION_GRAPH")
+
     def test_mutate_partial_failure_keeps_successes(self) -> None:
         plan = load_plan(PLAN)
         failing = CampaignMutation(**{**plan.campaigns[0].to_dict(), "id": "mut-fail", "name": "Fail Campaign"})

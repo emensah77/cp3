@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .credentials import GoogleAdsCredential
+from .operation_builder import compile_plan_operations, summarize_operations
 from .policy import validate_plan
 from .provider import MockGoogleAdsProvider
 from .sqlite_store import SQLiteGoogleAdsStore
@@ -21,6 +22,9 @@ def build_parser() -> argparse.ArgumentParser:
     validate = subparsers.add_parser("validate-plan")
     validate.add_argument("--plan", required=True)
     validate.add_argument("--max-daily-budget-micros", type=int, required=True)
+
+    build_ops = subparsers.add_parser("build-operations")
+    build_ops.add_argument("--plan", required=True)
 
     db_init = subparsers.add_parser("db-init")
     db_init.add_argument("--db", required=True)
@@ -66,6 +70,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{violation.mutation_id} {violation.code} {violation.message}")
         print(f"violations={len(violations)}")
         return 0 if not violations else 1
+
+    if args.command == "build-operations":
+        plan = load_plan(Path(args.plan))
+        operations = compile_plan_operations(plan)
+        summary = summarize_operations(operations)
+        for resource_type in sorted(summary):
+            print(f"{resource_type}={summary[resource_type]}")
+        print(f"operations={len(operations)}")
+        return 0
 
     if args.command == "db-init":
         store = SQLiteGoogleAdsStore(Path(args.db))

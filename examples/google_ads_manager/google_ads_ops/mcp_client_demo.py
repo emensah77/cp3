@@ -47,6 +47,20 @@ def main() -> int:
                 },
             )
         )
+        print(
+            call(
+                proc,
+                {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "build_google_ads_operations",
+                        "arguments": {"plan_path": str(PLAN)},
+                    },
+                },
+            )
+        )
     finally:
         proc.terminate()
     return 0
@@ -54,4 +68,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
